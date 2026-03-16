@@ -1,5 +1,0 @@
-body { font-family: Arial, sans-serif; margin: 32px; background: #f8fafb; color: #111; }
-h1 { color: #0b4c6a; }
-.question-block, .result-block { background: #fff; padding: 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 12px; }
-input { padding: 8px; width: 160px; }
-button { padding: 8px 12px; margin-left: 8px; }
