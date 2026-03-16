@@ -53,7 +53,7 @@ app.post('/api/generate', async (req, res) => {
 
     try {
         const response = await openai.chat.completions.create({
-            model: "llama3-70b-8192", // Fast, highly capable free model on Groq
+            model: "qwen/qwen3-32b", // Fast, highly capable free model on Groq
             messages: [
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: `Generate ${count} extremely difficult, multi-step questions for the category: "${category}" (${description}). Output ONLY JSON.` }
