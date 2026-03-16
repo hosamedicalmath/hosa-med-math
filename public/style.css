@@ -1,0 +1,114 @@
+:root {
+    --primary: #005A9C;
+    --bg: #f4f7f6;
+    --text: #333;
+    --correct: #28a745;
+    --incorrect: #dc3545;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: var(--primary);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+button {
+    background: #004080;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+button:hover { background: #003060; }
+
+.hidden { display: none !important; }
+
+#loadingScreen {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.progress-bar {
+    width: 60%;
+    margin: 20px auto;
+    background: #ccc;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#progressFill {
+    width: 0%;
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s;
+}
+
+main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.question-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.question-card h3 { margin-top: 0; color: var(--primary); }
+
+.input-group {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.explanation {
+    margin-top: 15px;
+    padding: 15px;
+    background: #eef2f5;
+    border-left: 4px solid var(--primary);
+    display: none;
+}
+
+.correct { border: 2px solid var(--correct); background: #e9f7ef; }
+.incorrect { border: 2px solid var(--incorrect); background: #fdeaea; }
+
+#checkAllBtn {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    background: var(--primary);
+    margin-bottom: 40px;
+}
+
+#examResults {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 40px;
+}
