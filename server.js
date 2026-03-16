@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -11,39 +11,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Set up OpenAI SDK to use Groq's free API
-const openai = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1"
+// Initialize the official Groq SDK
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY
 });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
 
-// The Master System Prompt containing all HOSA Rules
+// Master prompt for HOSA rules
 const SYSTEM_PROMPT = `You are a HOSA Medical Math exam writer. Generate EXTREMELY HARD, deep, multi-step word problems.
 RULES:
 1. ROUNDING: Convert before rounding. Round ONLY the final answer. 
 2. Rounding decimals: Look to immediate right. >=5 round up, <=4 round down.
-3. DEFAULT ROUNDING: Nearest WHOLE NUMBER unless the question specifically specifies otherwise (e.g., nearest tenth).
-4. PEDIATRIC DOSAGE: Always round DOWN to avoid overdose, regardless of the decimal (e.g., 31.9 -> 31).
-5. ZEROES: Decimal expressions <1 MUST have a leading zero (0.5). A whole number MUST NEVER have a trailing zero (5, not 5.0).
-6. CONVERSIONS TO USE:
-- 1 kg = 2.2 lbs
-- 1 inch = 2.54 cm
-- 1 tsp = 5 mL, 1 tbsp = 15 mL, 1 oz = 30 mL, 1 cup = 240 mL
-- 1 mL = 15 gtts (drops), 1 drop = 0.0667 mL
-- C = (F - 32) * 5/9 | F = (C * 9/5) + 32
-- BSA (m2) = √([height(cm) x weight(kg)]/3600) or √([height(in) x weight(lb)]/3131)
+3. DEFAULT: Nearest WHOLE NUMBER unless specified.
+4. PEDS DOSAGE: ALWAYS round DOWN to avoid overdose (e.g., 31.9 -> 31).
+5. ZEROES: <1 MUST have leading zero (0.5). Whole numbers NEVER have trailing zero (5, not 5.0).
+6. CONVERSIONS: 1kg=2.2lbs, 1in=2.54cm, 1tsp=5mL, 1tbsp=15mL, 1oz=30mL, 1cup=240mL, 1mL=15gtts.
+7. Output MUST be perfectly formatted JSON.
 
-You must output valid JSON in this exact format, with no markdown formatting outside the JSON:
+Output ONLY valid JSON in this format:
 {
   "questions": [
     {
-      "question": "The complex multi-step word problem text...",
-      "explanation": "Step-by-step math to prove the answer.",
-      "final_answer": "The final numerical answer (just the number/formatted correctly)"
+      "question": "Multi-step word problem...",
+      "explanation": "Brief math steps...",
+      "final_answer": "Final number"
     }
   ]
 }`;
@@ -52,8 +46,10 @@ app.post('/api/generate', async (req, res) => {
     const { category, count, description } = req.body;
 
     try {
-        const response = await openai.chat.completions.create({
-            model: "qwen/qwen3-32b", // Fast, highly capable free model on Groq
+        console.log(`\nGenerating ${count} Qs for ${category} using Qwen3-32b...`);
+        
+        const completion = await groq.chat.completions.create({
+            model: "qwen/qwen3-32b", // Using your specified Groq Qwen model
             messages: [
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: `Generate ${count} extremely difficult, multi-step questions for the category: "${category}" (${description}). Output ONLY JSON.` }
@@ -62,11 +58,19 @@ app.post('/api/generate', async (req, res) => {
             response_format: { type: "json_object" }
         });
 
-        const data = JSON.parse(response.choices[0].message.content);
+        let rawText = completion.choices[0]?.message?.content || "{}";
+        
+        // CLEANUP: Qwen sometimes outputs markdown around JSON. This removes it so the app doesn't crash.
+        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        const data = JSON.parse(rawText);
+        console.log(`✅ Successfully generated questions for ${category}`);
         res.json(data);
+        
     } catch (error) {
-        console.error("AI Generation Error:", error);
-        res.status(500).json({ error: "Failed to generate questions." });
+        console.error(`\n❌ API Error for ${category}:`);
+        console.error(error.message || error);
+        res.status(500).json({ error: error.message || "Failed to generate questions." });
     }
 });
 
